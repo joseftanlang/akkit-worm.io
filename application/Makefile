@@ -19,8 +19,8 @@ FLASH_BASE_ADDR_VAL = 0x08000000
 NAME_MODULE = ak-base-kit-stm32l151-application
 PROJECT = $(NAME_MODULE)
 
-GCC_PATH			= $(HOME)/Workspace/Tools/gcc-arm-none-eabi-10.3-2021.10
-PROGRAMER_PATH		= $(HOME)/workspace/tools/STM32CubeProgrammer/bin
+GCC_PATH		= /home/josef/Downloads/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/gcc-arm-none-eabi-10.3-2021.10
+PROGRAMER_PATH		= /home/josef/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin
 OPENOCD_CFG_PATH	= /usr/local/share/openocd/scripts/board/stm32ldiscovery.cfg
 
 # App start address, that need sync with declare in linker file and interrupt vector table.
@@ -78,17 +78,13 @@ include sources/platform/stm32l/Makefile.mk
 OBJECTS_DIR = build_$(NAME_MODULE)
 TARGET = $(OBJECTS_DIR)/$(NAME_MODULE).axf
 
-SOURCES		+=
+OURCES		+=
 SOURCES_	 = $(shell find $(SOURCES) -type f -printf "%f\n")
 OBJECTS		+= $(patsubst %.c, $(OBJECTS_DIR)/%.o, $(SOURCES_))
 
 SOURCES_CPP	+=
 SOURCES_CPP_	 = $(shell find $(SOURCES_CPP) -type f -printf "%f\n")
 OBJECTS		+= $(patsubst %.cpp, $(OBJECTS_DIR)/%.o, $(SOURCES_CPP_))
-
-SOURCES_ASM	+=
-SOURCES_ASM_	 = $(shell find $(SOURCES_ASM) -type f -printf "%f\n")
-OBJECTS		+= $(patsubst %.s, $(OBJECTS_DIR)/%.o, $(SOURCES_ASM_))
 
 LIBC		= $(GCC_PATH)/arm-none-eabi/lib/thumb/v7-m/nofp/libc.a
 LIBM		= $(GCC_PATH)/arm-none-eabi/lib/thumb/v7-m/nofp/libm.a
