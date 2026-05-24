@@ -14,6 +14,8 @@ static void view_scr_worm();
 static void view_scr_worm_overlay();
 
 static void view_draw_worm();
+static void worm_music_start(void);
+static void worm_music_stop(void);
 
 #define HEART_SIZE (7)
 #define HEART_SPACING (1)
@@ -21,6 +23,8 @@ static void view_draw_worm();
 #define WORM_GAME_TEXT_Y (18)
 #define WORM_GAME_HELP_Y (44)
 #define WORM_GAME_SPARKLES (8)
+#define WORM_MUSIC_LOOP_TICK_SIG (AK_USER_DEFINE_SIG + 184)
+#define WORM_MUSIC_LOOP_GAP_MS (150)
 
 static uint8_t worm_game_finished = 0;
 static uint8_t worm_game_won = 0;
@@ -52,8 +56,41 @@ void worm_game_finish(uint8_t won)
 	worm_game_finished = 1;
 	worm_game_won = won ? 1 : 0;
 	worm_game_anim_tick = 0;
+	worm_music_stop();
 	timer_remove_attr(GAME_APPLE_ID, AC_APPLE_TICK);
 	score_commit_current();
+}
+
+static void worm_music_stop(void)
+{
+	timer_remove_attr(AC_TASK_DISPLAY_ID, WORM_MUSIC_LOOP_TICK_SIG);
+	BUZZER_Disable();
+	BUZZER_Silent(scr_game_setting_is_buzzer_enabled() ? false : true);
+}
+
+static void worm_music_start(void)
+{
+	buzzer_sound_t song = scr_game_setting_get_song();
+	uint32_t loop_interval_ms;
+
+	timer_remove_attr(AC_TASK_DISPLAY_ID, WORM_MUSIC_LOOP_TICK_SIG);
+
+	if (!scr_game_setting_is_buzzer_enabled())
+	{
+		BUZZER_Silent(true);
+		return;
+	}
+
+	BUZZER_Silent(false);
+	BUZZER_PlaySound(song);
+
+	loop_interval_ms = BUZZER_GetSoundDurationMs(song) + WORM_MUSIC_LOOP_GAP_MS;
+	if (loop_interval_ms == WORM_MUSIC_LOOP_GAP_MS)
+	{
+		loop_interval_ms = 1000;
+	}
+
+	timer_set(AC_TASK_DISPLAY_ID, WORM_MUSIC_LOOP_TICK_SIG, loop_interval_ms, TIMER_PERIODIC);
 }
 
 view_dynamic_t dyn_view_item_worm = {
@@ -239,13 +276,28 @@ void scr_worm_handle(ak_msg_t *msg)
 		timer_remove_attr(GAME_GAMER_ID, AC_WORM_TICK);
 		worm_game_reset();
 		score_init();
-		/* keep buzzer aligned with the settings screen */
-		BUZZER_Silent(scr_game_setting_is_buzzer_enabled() ? false : true);
 		worm_init();
 		lives_init();
 		apple_init();
+		worm_music_start();
 		view_render_screen(&scr_worm);
 		timer_set(GAME_GAMER_ID, AC_WORM_TICK, scr_game_setting_get_worm_tick_interval_ms(), TIMER_PERIODIC);
+	}
+	break;
+
+	case WORM_MUSIC_LOOP_TICK_SIG:
+	{
+		if (!worm_game_finished && scr_game_setting_is_buzzer_enabled())
+		{
+			BUZZER_PlaySound(scr_game_setting_get_song());
+		}
+	}
+	break;
+
+	case SCREEN_EXIT:
+	{
+		timer_remove_attr(GAME_GAMER_ID, AC_WORM_TICK);
+		worm_music_stop();
 	}
 	break;
 
@@ -261,12 +313,11 @@ void scr_worm_handle(ak_msg_t *msg)
 	}
 	else if (msg->sig == 11) { /* AC_DISPLAY_BUTON_MODE_PRESSED */
 		timer_remove_attr(GAME_GAMER_ID, AC_WORM_TICK);
+		worm_music_stop();
 		if (worm_game_finished) {
 			SCREEN_TRAN(scr_charts_handle, &scr_charts);
 		}
 		else {
-			/* keep buzzer state aligned with the settings screen */
-			BUZZER_Silent(scr_game_setting_is_buzzer_enabled() ? false : true);
 			SCREEN_BACK();
 		}
 	}

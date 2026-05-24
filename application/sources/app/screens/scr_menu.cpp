@@ -7,9 +7,11 @@ static int menu_count = sizeof(menu_items) / sizeof(menu_items[0]);
 static int menu_index = 0;
 static int menu_view_offset = 0;
 static uint8_t menu_anim_tick = 0;
+static uint32_t menu_last_input_ms = 0;
 
 #define MENU_ANIM_INTERVAL_MS (70)
-#define MENU_ANIM_TICK_SIG (AK_USER_DEFINE_SIG + 182)
+#define MENU_ANIM_PAUSE_AFTER_INPUT_MS (300)
+#define MENU_ANIM_TICK_SIG (AK_USER_DEFINE_SIG + 181)
 #define MENU_VISIBLE_COUNT (2)
 #define MENU_TITLE_Y (3)
 #define MENU_DIVIDER_Y (14)
@@ -143,6 +145,7 @@ void scr_menu_game_handle(ak_msg_t *msg)
         menu_index = 0;
         menu_view_offset = 0;
         menu_anim_tick = 0;
+        menu_last_input_ms = 0;
         timer_set(AC_TASK_DISPLAY_ID, MENU_ANIM_TICK_SIG, MENU_ANIM_INTERVAL_MS, TIMER_PERIODIC);
         view_scr_menu();
     }
@@ -156,6 +159,12 @@ void scr_menu_game_handle(ak_msg_t *msg)
 
     case MENU_ANIM_TICK_SIG:
     {
+        uint32_t current_ms = sys_ctrl_millis();
+        if ((current_ms - menu_last_input_ms) < MENU_ANIM_PAUSE_AFTER_INPUT_MS)
+        {
+            break;
+        }
+
         menu_tick();
         view_scr_menu();
     }
@@ -163,6 +172,8 @@ void scr_menu_game_handle(ak_msg_t *msg)
 
     case AC_DISPLAY_BUTON_UP_PRESSED:
     {
+        menu_last_input_ms = sys_ctrl_millis();
+
         if (menu_index > 0)
             menu_index--;
         else
@@ -173,13 +184,14 @@ void scr_menu_game_handle(ak_msg_t *msg)
         else if (menu_index >= menu_view_offset + MENU_VISIBLE_COUNT)
             menu_view_offset = menu_index - MENU_VISIBLE_COUNT + 1;
 
-        view_scr_menu();
         BUZZER_PlaySound(BUZZER_SOUND_CLICK);
     }
     break;
 
     case AC_DISPLAY_BUTON_DOWN_PRESSED:
     {
+        menu_last_input_ms = sys_ctrl_millis();
+
         menu_index = (menu_index + 1) % menu_count;
 
         if (menu_index < menu_view_offset)
@@ -187,13 +199,14 @@ void scr_menu_game_handle(ak_msg_t *msg)
         else if (menu_index >= menu_view_offset + MENU_VISIBLE_COUNT)
             menu_view_offset = menu_index - MENU_VISIBLE_COUNT + 1;
 
-        view_scr_menu();
         BUZZER_PlaySound(BUZZER_SOUND_CLICK);
     }
     break;
 
     case AC_DISPLAY_BUTON_MODE_PRESSED:
     {
+        menu_last_input_ms = sys_ctrl_millis();
+
         BUZZER_PlaySound(BUZZER_SOUND_CLICK);
         timer_remove_attr(AC_TASK_DISPLAY_ID, MENU_ANIM_TICK_SIG);
         switch (menu_index)

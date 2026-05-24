@@ -1,6 +1,7 @@
 #include "worm_game_apple.h"
 #include "worm_game_border.h"
 #include "scr_worm.h"
+#include "scr_setting.h"
 
 #include <stdlib.h>
 
@@ -62,6 +63,20 @@ static uint8_t apple_position_is_valid(uint32_t x, uint32_t y, uint32_t w, uint3
 	}
 
 	return 1;
+}
+
+static uint8_t apple_get_active_limit(void) {
+	uint8_t limit = scr_game_setting_get_apple_count();
+
+	if (limit < 1) {
+		limit = 1;
+	}
+
+	if (limit > MAX_APPLES) {
+		limit = MAX_APPLES;
+	}
+
+	return limit;
 }
 
 static void apple_get_spawn_bounds(uint32_t* min_x, uint32_t* min_y, uint32_t* max_x, uint32_t* max_y) {
@@ -126,15 +141,18 @@ static void apple_reset_slot(uint8_t index) {
 }
 
 void apple_init(void) {
+	uint8_t active_limit = apple_get_active_limit();
+
 	timer_remove_attr(GAME_APPLE_ID, AC_APPLE_TICK);
 	timer_set(GAME_APPLE_ID, AC_APPLE_TICK, 1000, TIMER_PERIODIC);
 
 	for (uint8_t i = 0; i < MAX_APPLES; i++) {
 		apple_reset_slot(i);
-		apples_no[i].respawn_seconds = (uint8_t)(i * APPLE_RESPAWN_SECONDS);
+		if (i < active_limit) {
+			apples_no[i].respawn_seconds = (uint8_t)(i * APPLE_RESPAWN_SECONDS);
+			apple_spawn_slot(i);
+		}
 	}
-
-	apple_spawn_slot(0);
 }
 
 // counting the number of apples
@@ -144,7 +162,13 @@ void counting_apples(void)
 		return;
 	}
 
-	for (uint8_t i = 0; i < MAX_APPLES; i++) {
+	uint8_t active_limit = apple_get_active_limit();
+
+	for (uint8_t i = active_limit; i < MAX_APPLES; i++) {
+		apple_reset_slot(i);
+	}
+
+	for (uint8_t i = 0; i < active_limit; i++) {
 		if (apples_no[i].is_active) {
 			if (apple_rect_overlap(apples_no[i].x, apples_no[i].y, apples_no[i].width, apples_no[i].height,
 							   game_worm.x, game_worm.y, game_worm.width, game_worm.height)) {

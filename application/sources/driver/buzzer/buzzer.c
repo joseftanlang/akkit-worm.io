@@ -187,6 +187,22 @@ void BUZZER_PlaySound(buzzer_sound_t sound) {
 	}
 }
 
+uint32_t BUZZER_GetSoundDurationMs(buzzer_sound_t sound) {
+	const Tone_TypeDef* tones = buzzer_get_music(sound);
+	uint32_t duration_ms = 0;
+
+	if (tones == NULL) {
+		return 0;
+	}
+
+	while (!(tones->frequency == 0 && tones->duration == 0)) {
+		duration_ms += (uint32_t)tones->duration * 10U;
+		tones++;
+	}
+
+	return duration_ms;
+}
+
 void BUZZER_Silent(bool isSilent) {
-	_buzzer_silent = isSilent;
+	_buzzer_silent = isSilent ? BUZZER_SILENT_ON : BUZZER_SILENT_OFF;
 }

@@ -27,6 +27,8 @@ extern view_screen_t scr_game_setting;
 extern view_dynamic_t dyn_view_item_game_setting;
 extern void scr_game_setting_handle(ak_msg_t* msg);
 extern uint16_t scr_game_setting_get_worm_tick_interval_ms(void);
+extern uint8_t scr_game_setting_get_apple_count(void);
+extern buzzer_sound_t scr_game_setting_get_song(void);
 extern uint8_t scr_game_setting_is_buzzer_enabled(void);
 
 #endif // __SCR_GAME_SETTING_H__
