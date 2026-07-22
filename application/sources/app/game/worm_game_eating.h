@@ -41,13 +41,12 @@ typedef struct {
     uint8_t eating_image;
 } worm_game_eating_effect_t;
 
-extern worm_game_eating_effect_t worm_eating;
-
 void eating_effect_init(void);
 void eating_effect_start(uint32_t x, uint32_t y);
 void eating_effect_tick(void);
 void eating_effect_stop(void);
 
+extern worm_game_eating_effect_t worm_eating;
 extern void worm_game_eating_handler(ak_msg_t* msg);
 
 

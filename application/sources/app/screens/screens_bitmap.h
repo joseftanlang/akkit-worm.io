@@ -3,7 +3,6 @@
 
 #include "view_render.h"
 
-// scr_welcome
 extern const unsigned char PROGMEM bitmap_dolphin[];
 extern const unsigned char PROGMEM bitmap_apple[];
 extern const unsigned char PROGMEM bitmap_heart_b[];

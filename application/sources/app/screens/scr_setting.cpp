@@ -1,30 +1,13 @@
-// If you want to see many cool animation do uncomments all the codes.
-
 #include "scr_setting.h"
 
-static uint8_t selected_item = 0; // 0 = speed, 1 = apples, 2 = song, 3 = buzzer
+static uint8_t selected_item = SELECTED_DEFAULT_ITEM;
 static uint8_t setting_anim_tick = 0;
-static uint8_t setting_worm_speed = 3;     /* 1..5 */
-static uint8_t setting_apple_count = 1;    /* 1..8 */
-static uint8_t setting_song_index = 0;     /* 0..4 */
-static uint8_t setting_buzzer_enabled = 0; /* default: BUZZER OFF */
+static uint8_t setting_worm_speed = SETTING_ITEM_SPEED;
+static uint8_t setting_apple_count = SETTING_ITEM_APPLE;
+static uint8_t setting_song_index = SETTING_ITEM_SONG;
+static uint8_t setting_buzzer_enabled = SETTING_ITEM_BUZZER;
 
-typedef struct
-{
-    uint32_t magic;
-    uint8_t worm_speed;
-    uint8_t apple_count;
-    uint8_t song_index;
-    uint8_t buzzer_enabled;
-} setting_persist_t;
-
-static const uint16_t setting_worm_tick_intervals_ms[SETTING_WORM_SPEED_MAX] = {
-    180,
-    150,
-    110,
-    90,
-    50,
-};
+static const uint16_t setting_worm_tick_intervals_ms[SETTING_WORM_SPEED_MAX] = { 180, 150, 110, 90, 50 };
 
 static const char *setting_speed_values[] = {"1", "2", "3", "4", "5"};
 static const char *setting_apple_values[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
@@ -40,13 +23,6 @@ static const buzzer_sound_t setting_song_sounds[] = {
 
 static uint8_t setting_loaded = 0;
 
-typedef struct
-{
-    int16_t x;
-    uint8_t y;
-    uint8_t speed;
-} setting_star_t;
-
 static setting_star_t setting_stars[] = {
     {12, 8, 1},
     {28, 19, 2},
@@ -56,14 +32,10 @@ static setting_star_t setting_stars[] = {
     {111, 22, 2},
 };
 
-static const uint8_t setting_star_count =
-    sizeof(setting_stars) / sizeof(setting_stars[0]);
+static const uint8_t setting_star_count = sizeof(setting_stars) / sizeof(setting_stars[0]);
 
 // Internal function declarations for the settings screen, including rendering, animation, and persistence
-
 static void view_scr_game_setting();
-// static void setting_tick();
-// static void setting_draw_background();
 static void setting_draw_title();
 static void setting_draw_row(int index, int y, const char *label, const char *value);
 static void setting_toggle_selected_item();
@@ -77,44 +49,28 @@ static const char *setting_get_buzzer_value();
 
 // Screen structure for the game settings, including dynamic rendering and focus management
 
-view_dynamic_t dyn_view_item_game_setting = {
-    {.item_type = ITEM_TYPE_DYNAMIC},
-    view_scr_game_setting};
+view_dynamic_t dyn_view_item_game_setting = {{.item_type = ITEM_TYPE_DYNAMIC},view_scr_game_setting};
 
-view_screen_t scr_game_setting = {
-    &dyn_view_item_game_setting,
-    ITEM_NULL,
-    ITEM_NULL,
-    .focus_item = 0,
-};
+view_screen_t scr_game_setting = {&dyn_view_item_game_setting,ITEM_NULL,ITEM_NULL,.focus_item = 0,};
 
 // Load settings from EEPROM if they haven't been loaded yet, ensuring that the settings are only loaded once per session
-static void setting_load_if_needed(void)
-{
+static void setting_load_if_needed(void){
     setting_persist_t stored = {0};
 
-    if (setting_loaded)
+    if (setting_loaded){
         return;
+    }
 
-    if (eeprom_read(EEPROM_WORM_SETTING_MAGIC_ADDR,
-                    (uint8_t *)&stored,
-                    sizeof(stored)) == EEPROM_DRIVER_OK &&
-        stored.magic == EEPROM_WORM_SETTING_MAGIC)
-    {
-        if (stored.worm_speed >= SETTING_WORM_SPEED_MIN &&
-            stored.worm_speed <= SETTING_WORM_SPEED_MAX)
-        {
+    if (eeprom_read(EEPROM_WORM_SETTING_MAGIC_ADDR,(uint8_t *)&stored, sizeof(stored)) == EEPROM_DRIVER_OK && stored.magic == EEPROM_WORM_SETTING_MAGIC) {
+        if (stored.worm_speed >= SETTING_WORM_SPEED_MIN && stored.worm_speed <= SETTING_WORM_SPEED_MAX){
             setting_worm_speed = stored.worm_speed;
         }
 
-        if (stored.apple_count >= SETTING_APPLE_COUNT_MIN &&
-            stored.apple_count <= SETTING_APPLE_COUNT_MAX)
-        {
+        if (stored.apple_count >= SETTING_APPLE_COUNT_MIN && stored.apple_count <= SETTING_APPLE_COUNT_MAX) {
             setting_apple_count = stored.apple_count;
         }
 
-        if (stored.song_index < SETTING_SONG_COUNT)
-        {
+        if (stored.song_index < SETTING_SONG_COUNT){
             setting_song_index = stored.song_index;
         }
 
@@ -125,8 +81,7 @@ static void setting_load_if_needed(void)
 }
 
 // Save the current settings to EEPROM, ensuring that the settings are persisted across sessions and can be restored on the next startup
-static void setting_save(void)
-{
+static void setting_save(void){
     setting_persist_t stored;
 
     setting_load_if_needed();
@@ -137,41 +92,40 @@ static void setting_save(void)
     stored.song_index = setting_song_index;
     stored.buzzer_enabled = setting_buzzer_enabled;
 
-    eeprom_write(EEPROM_WORM_SETTING_MAGIC_ADDR,
-                 (uint8_t *)&stored,
-                 sizeof(stored));
+    eeprom_write(EEPROM_WORM_SETTING_MAGIC_ADDR,(uint8_t *)&stored,sizeof(stored));
 }
 
 // Get the worm tick interval in milliseconds based on the current speed setting, ensuring that the game speed is adjusted according to user preferences
-uint16_t scr_game_setting_get_worm_tick_interval_ms(void)
-{
+uint16_t scr_game_setting_get_worm_tick_interval_ms(void){
     setting_load_if_needed();
 
     uint8_t speed = setting_worm_speed;
 
-    if (speed < SETTING_WORM_SPEED_MIN)
+    if (speed < SETTING_WORM_SPEED_MIN){
         speed = SETTING_WORM_SPEED_MIN;
-    if (speed > SETTING_WORM_SPEED_MAX)
+    }
+    if (speed > SETTING_WORM_SPEED_MAX){
         speed = SETTING_WORM_SPEED_MAX;
+    }
 
     return setting_worm_tick_intervals_ms[speed - 1];
 }
 
-uint8_t scr_game_setting_get_apple_count(void)
-{
+uint8_t scr_game_setting_get_apple_count(void){
     setting_load_if_needed();
 
-    if (setting_apple_count < SETTING_APPLE_COUNT_MIN)
+    if (setting_apple_count < SETTING_APPLE_COUNT_MIN){
         return SETTING_APPLE_COUNT_MIN;
+    }
 
-    if (setting_apple_count > SETTING_APPLE_COUNT_MAX)
+    if (setting_apple_count > SETTING_APPLE_COUNT_MAX){
         return SETTING_APPLE_COUNT_MAX;
+    }
 
     return setting_apple_count;
 }
 
-buzzer_sound_t scr_game_setting_get_song(void)
-{
+buzzer_sound_t scr_game_setting_get_song(void){
     setting_load_if_needed();
 
     uint8_t idx = setting_song_index;
@@ -181,58 +135,47 @@ buzzer_sound_t scr_game_setting_get_song(void)
     return setting_song_sounds[idx];
 }
 
-uint8_t scr_game_setting_is_buzzer_enabled(void)
-{
+uint8_t scr_game_setting_is_buzzer_enabled(void){
     setting_load_if_needed();
     return setting_buzzer_enabled;
 }
 
-static const char *setting_get_speed_value()
-{
+static const char *setting_get_speed_value(){
     setting_load_if_needed();
     return setting_speed_values[setting_worm_speed - 1];
 }
 
-static const char *setting_get_apple_value()
-{
+static const char *setting_get_apple_value(){
     return setting_apple_values[scr_game_setting_get_apple_count() - 1];
 }
 
-static const char *setting_get_song_value()
-{
+static const char *setting_get_song_value(){
     setting_load_if_needed();
 
     uint8_t idx = setting_song_index;
-    if (idx >= SETTING_SONG_COUNT)
+
+    if (idx >= SETTING_SONG_COUNT){
         idx = 0;
+    }
 
     return setting_song_values[idx];
 }
 
-static const char *setting_get_buzzer_value()
-{
+static const char *setting_get_buzzer_value(){
     setting_load_if_needed();
     return setting_buzzer_enabled ? "ON" : "OFF";
 }
 
 // Toggle the selected setting item, cycling through available options and saving the updated settings to EEPROM
-static void setting_toggle_selected_item()
-{
-    switch (selected_item)
-    {
+static void setting_toggle_selected_item(){
+    switch (selected_item)    {
     case 0:
-        setting_worm_speed =
-            (setting_worm_speed < SETTING_WORM_SPEED_MAX)
-                ? setting_worm_speed + 1
-                : SETTING_WORM_SPEED_MIN;
+        setting_worm_speed = (setting_worm_speed < SETTING_WORM_SPEED_MAX) ? setting_worm_speed + 1 : SETTING_WORM_SPEED_MIN;
         setting_save();
         break;
 
     case 1:
-        setting_apple_count =
-            (setting_apple_count < SETTING_APPLE_COUNT_MAX)
-                ? setting_apple_count + 1
-                : SETTING_APPLE_COUNT_MIN;
+        setting_apple_count = (setting_apple_count < SETTING_APPLE_COUNT_MAX) ? setting_apple_count + 1 : SETTING_APPLE_COUNT_MIN;
         setting_save();
         break;
 
@@ -250,46 +193,8 @@ static void setting_toggle_selected_item()
     }
 }
 
-// Update the animation state for the settings screen, moving stars across the screen to create a dynamic background effect
-// static void setting_tick()
-// {
-//     setting_anim_tick++;
-
-//     for (uint8_t i = 0; i < setting_star_count; i++)
-//     {
-//         if (setting_stars[i].x <= setting_stars[i].speed)
-//         {
-//             setting_stars[i].x = 127;
-//             setting_stars[i].y =
-//                 (uint8_t)((setting_anim_tick + (i * 13)) % 64);
-//         }
-//         else
-//         {
-//             setting_stars[i].x -= setting_stars[i].speed;
-//         }
-//     }
-// }
-
-// static void setting_draw_background()
-// {
-//     for (uint8_t i = 0; i < setting_star_count; i++)
-//     {
-//         if (((setting_anim_tick + i) & 0x01) == 0 ||
-//             setting_stars[i].speed > 1)
-//         {
-//             view_render.drawPixel(setting_stars[i].x,
-//                                   setting_stars[i].y,
-//                                   WHITE);
-//         }
-//     }
-
-//     view_render.drawRect(0, 0, 128, 64, WHITE);
-//     view_render.drawFastHLine(0, 14, 128, WHITE);
-// }
-
 // Draw the title of the settings screen at the top, centered horizontally, to indicate to the user that they are in the settings menu
-static void setting_draw_title()
-{
+static void setting_draw_title(){
     view_render.setTextColor(WHITE);
     view_render.setTextSize(1);
     view_render.setCursor(30, 3);
@@ -297,21 +202,11 @@ static void setting_draw_title()
 }
 
 // Draw a single row of the settings screen, including the label and current value, and highlight the row if it is currently selected by the user
-static void setting_draw_row(int index, int y,
-                             const char *label,
-                             const char *value)
-{
-    if (index == selected_item)
-    {
-        // view_render.fillRoundRect(4, y, 120,
-        //                           SETTING_ROW_HEIGHT, 2, WHITE);
-        // view_render.setTextColor(BLACK);
+static void setting_draw_row(int index, int y, const char *label, const char *value){
+    if (index == selected_item){
         view_render.setCursor(8, y + 2);
         view_render.print("> ");
-    }
-    else
-    {
-        // view_render.drawRoundRect(4, y, 120,SETTING_ROW_HEIGHT, 2, WHITE);
+    }else {
         view_render.setTextColor(WHITE);
         view_render.setCursor(8, y + 2);
         view_render.print("  ");
@@ -323,57 +218,42 @@ static void setting_draw_row(int index, int y,
 }
 
 // Render the entire settings screen, including the title and all setting rows, updating the display to reflect the current state of the settings and any user interactions
-void view_scr_game_setting()
-{
+void view_scr_game_setting(){
     view_render.clear();
 
-    // setting_draw_background();
     setting_draw_title();
 
-    setting_draw_row(0, SETTING_ROW_TOP_Y,
-                     "SPEED", setting_get_speed_value());
+    setting_draw_row(0, SETTING_ROW_TOP_Y,"SPEED", setting_get_speed_value());
 
-    setting_draw_row(1, SETTING_ROW_TOP_Y + SETTING_ROW_STEP_Y,
-                     "APPLE", setting_get_apple_value());
+    setting_draw_row(1, SETTING_ROW_TOP_Y + SETTING_ROW_STEP_Y,"APPLE", setting_get_apple_value());
 
-    setting_draw_row(2, SETTING_ROW_TOP_Y + (SETTING_ROW_STEP_Y * 2),
-                     "SONG", setting_get_song_value());
+    setting_draw_row(2, SETTING_ROW_TOP_Y + (SETTING_ROW_STEP_Y * 2),"SONG", setting_get_song_value());
 
-    setting_draw_row(3, SETTING_ROW_TOP_Y + (SETTING_ROW_STEP_Y * 3),
-                     "BUZZER", setting_get_buzzer_value());
+    setting_draw_row(3, SETTING_ROW_TOP_Y + (SETTING_ROW_STEP_Y * 3),"BUZZER", setting_get_buzzer_value());
 }
 
-void scr_game_setting_handle(ak_msg_t *msg)
-{
-    switch (msg->sig)
-    {
+void scr_game_setting_handle(ak_msg_t *msg){
+    switch (msg->sig){
     case SCREEN_ENTRY:
         setting_load_if_needed();
         selected_item = 0;
         setting_anim_tick = 0;
         g_controller_mode = 1;
-        timer_set(AC_TASK_DISPLAY_ID,
-                  SETTING_ANIM_TICK_SIG,
-                  SETTING_ANIM_INTERVAL_MS,
-                  TIMER_PERIODIC);
+        timer_set(AC_TASK_DISPLAY_ID,SETTING_ANIM_TICK_SIG,SETTING_ANIM_INTERVAL_MS,TIMER_PERIODIC);
         view_scr_game_setting();
         break;
 
     case SCREEN_EXIT:
-        timer_remove_attr(AC_TASK_DISPLAY_ID,
-                          SETTING_ANIM_TICK_SIG);
+        timer_remove_attr(AC_TASK_DISPLAY_ID, SETTING_ANIM_TICK_SIG);
         break;
 
     case SETTING_ANIM_TICK_SIG:
-        // setting_tick();
         view_scr_game_setting();
         break;
 
     // for the number its assigned by the ak_msg_t sig, for example 12 is UP button
     case 12:
-        selected_item = (selected_item == 0)
-                            ? SETTING_ROW_COUNT - 1
-                            : selected_item - 1;
+        selected_item = (selected_item == 0) ? SETTING_ROW_COUNT - 1 : selected_item - 1;
         BUZZER_PlaySound(BUZZER_SOUND_CLICK);
         break;
 
@@ -391,8 +271,7 @@ void scr_game_setting_handle(ak_msg_t *msg)
     case 18:
     case 19:
         BUZZER_PlaySound(BUZZER_SOUND_CLICK);
-        timer_remove_attr(AC_TASK_DISPLAY_ID,
-                          SETTING_ANIM_TICK_SIG);
+        timer_remove_attr(AC_TASK_DISPLAY_ID, SETTING_ANIM_TICK_SIG);
         SCREEN_TRAN(scr_worm_menu_game_handle, &scr_menu_game);
         break;
 

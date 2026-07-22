@@ -40,12 +40,12 @@ typedef struct {
     uint32_t amount_lives;
 } worm_game_lives_icon_t;
 
-extern worm_game_lives_icon_t game_lives;
-
 void lives_init(void);
 void lives_reset(void);
 void lives_inc(void);
 void lives_dec(void);
 uint32_t lives_get(void);
+
+extern worm_game_lives_icon_t game_lives;
 
 #endif //__WORM_GAME_LIVES_H__

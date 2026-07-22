@@ -55,8 +55,8 @@ typedef struct {
     uint8_t apple_image;
 } worm_game_apple_t;
 
-extern worm_game_apple_t apples_no[MAX_APPLES];
-
 void apple_init(void);
+
+extern worm_game_apple_t apples_no[MAX_APPLES];
 
 #endif //__WORM_GAME_APPLE_H__

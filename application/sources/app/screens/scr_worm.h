@@ -32,15 +32,6 @@
 #include "scr_charts.h"
 #include "scr_setting.h"
 
-extern view_dynamic_t dyn_view_item_worm;
-extern view_screen_t scr_worm;
-extern void scr_worm_handle(ak_msg_t* msg);
-extern void worm_worm_gamer_handler(ak_msg_t* msg);
-extern uint8_t worm_game_is_finished(void);
-extern uint8_t worm_game_is_won(void);
-extern void worm_game_finish(uint8_t won);
-extern void worm_game_reset(void);
-
 #define HEART_SIZE (7)
 #define HEART_SPACING (1)
 #define WORM_GAME_TEXT_X (20)
@@ -51,5 +42,14 @@ extern void worm_game_reset(void);
 #define WORM_MUSIC_LOOP_GAP_MS (150)
 #define SCR_WIDTH 128
 #define SCR_HEIGHT 64
+
+extern view_dynamic_t dyn_view_item_worm;
+extern view_screen_t scr_worm;
+extern void scr_worm_handle(ak_msg_t* msg);
+extern void worm_worm_gamer_handler(ak_msg_t* msg);
+extern uint8_t worm_game_is_finished(void);
+extern uint8_t worm_game_is_won(void);
+extern void worm_game_finish(uint8_t won);
+extern void worm_game_reset(void);
 
 #endif //__SCR_WORM_H__

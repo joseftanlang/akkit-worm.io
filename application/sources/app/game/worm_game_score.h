@@ -25,10 +25,16 @@
 
 #include "screens_bitmap.h"
 
-//codes
-
 #define START_SCORE     (0)
 #define INCREMENT_SCORE (1)
+
+enum {
+    AC_SCORE_INIT = AK_USER_DEFINE_SIG + 10,
+    AC_SCORE_INC,
+    AC_SCORE_RESET,
+    AC_SCORE_COMMIT,
+    AC_SCORE_TOP_GET,
+};
 
 typedef struct {
     uint32_t x;
@@ -39,19 +45,9 @@ typedef struct {
 void score_init(void);
 void score_reset(void);
 void score_inc(void);
-uint32_t score_get(void);
 void score_commit_current(void);
-uint32_t score_top_get(uint8_t index);
-
 void worm_game_score_handler(ak_msg_t* msg);
-
-/* message signals for `worm_game_score_handler` */
-enum {
-    AC_SCORE_INIT = AK_USER_DEFINE_SIG + 10,
-    AC_SCORE_INC,
-    AC_SCORE_RESET,
-    AC_SCORE_COMMIT,
-    AC_SCORE_TOP_GET,
-};
+uint32_t score_get(void);
+uint32_t score_top_get(uint8_t index);
 
 #endif //__WORM_GAME_SCORE_H__

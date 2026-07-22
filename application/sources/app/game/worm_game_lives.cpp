@@ -7,40 +7,33 @@
 
 worm_game_lives_icon_t game_lives = {0};
 
-void lives_init(void)
-{
+void lives_init(void){
 	game_lives.x = 0;
 	game_lives.y = 0;
 	lives_reset();
 }
 
-void lives_reset(void)
-{
+void lives_reset(void){
 	game_lives.amount_lives = START_LIVES;
 }
 
-void lives_inc(void)
-{
+void lives_inc(void){
 	game_lives.amount_lives++;
 }
 
-void lives_dec(void)
-{
+void lives_dec(void){
 	if (game_lives.amount_lives > MIN_LIVES)
 	{
 		game_lives.amount_lives--;
 	}
 }
 
-uint32_t lives_get(void)
-{
+uint32_t lives_get(void){
 	return game_lives.amount_lives;
 }
 
-void worm_game_lives_handler(ak_msg_t *msg)
-{
-	switch (msg->sig)
-	{
+void worm_game_lives_handler(ak_msg_t *msg){
+	switch (msg->sig){
 	case WORM_AC_LIVES_INIT:
 		lives_init();
 		break;

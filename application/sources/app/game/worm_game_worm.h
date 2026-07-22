@@ -34,12 +34,30 @@
 #define WORM_START_WIDTH       (20)
 #define WORM_START_HEIGHT      (5)
 
+#define WORM_MAX_TRAIL         (384)
+#define WORM_INITIAL_LENGTH    (4)
+
 #ifndef WORM_MOVE_STEP
 #define WORM_MOVE_STEP         (5)
 #endif
 
-#define WORM_MAX_TRAIL         (384)
-#define WORM_INITIAL_LENGTH    (4)
+/* message signals for `worm_game_worm_handler` */
+enum {
+    AC_WORM_INIT = AK_USER_DEFINE_SIG,
+    AC_WORM_TICK,
+    AC_WORM_SET_DIR_RIGHT,
+    AC_WORM_SET_DIR_DOWN,
+    AC_WORM_SET_DIR_LEFT,
+    AC_WORM_SET_DIR_UP,
+    AC_WORM_GROW,
+};
+
+typedef enum {
+    WORM_DIR_RIGHT = 0,
+    WORM_DIR_DOWN,
+    WORM_DIR_LEFT,
+    WORM_DIR_UP,
+} worm_game_dir_t;
 
 typedef struct {
     uint8_t x;
@@ -58,32 +76,12 @@ typedef struct {
     worm_game_point_t trail[WORM_MAX_TRAIL];
 } worm_game_t;
 
-typedef enum {
-    WORM_DIR_RIGHT = 0,
-    WORM_DIR_DOWN,
-    WORM_DIR_LEFT,
-    WORM_DIR_UP,
-} worm_game_dir_t;
-
-extern worm_game_t worm_game;
-
-/* Object-only (movement and input handled by screen code) */
 void worm_init(void);
 void worm_set_direction(worm_game_dir_t d);
+void worm_grow(void);
 worm_game_dir_t worm_get_direction(void);
 uint8_t worm_advance(void);
-void worm_grow(void);
 
-/* message signals for `worm_game_worm_handler` */
-enum {
-    AC_WORM_INIT = AK_USER_DEFINE_SIG,
-    AC_WORM_TICK,
-    AC_WORM_SET_DIR_RIGHT,
-    AC_WORM_SET_DIR_DOWN,
-    AC_WORM_SET_DIR_LEFT,
-    AC_WORM_SET_DIR_UP,
-    AC_WORM_GROW,
-};
-
+extern worm_game_t worm_game;
 
 #endif //__WORM_GAME_WORM_H__
