@@ -374,4 +374,4 @@ make flash
 | Blog & Tutorial | <https://epcb.vn/blogs/ak-embedded-software> |
 | Where to buy KIT? | <https://epcb.vn/products/ak-embedded-base-kit-lap-trinh-nhung-vi-dieu-khien-mcu> |
 | Schematic | [hardware/schematic/schematic-ak-embedded-base-kit-version-3.pdf](hardware/schematic/schematic-ak-embedded-base-kit-version-3.pdf) |
-| Learning kit | [ Back to 1. Introduction](1_INTRODUCTION.md) |
+| Learning kit | [ Instruction Manual](./resources/Instruction/OVERALL.md) |
