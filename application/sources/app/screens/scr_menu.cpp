@@ -124,8 +124,7 @@ void scr_worm_menu_game_handle(ak_msg_t *msg){
         BUZZER_PlaySound(BUZZER_SOUND_CLICK);
 
         // Handle the selected menu item based on the current index, transitioning to the appropriate screen
-        switch (menu_index)
-        {
+        switch (menu_index){
         case 0:
             SCREEN_TRAN(scr_worm_handle, &scr_worm);
             break;
