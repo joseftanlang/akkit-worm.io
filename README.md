@@ -17,12 +17,6 @@ This repository contains the firmware for the worm game that runs on the AK Embe
 
 The board is designed for embedded learning and prototyping. It combines a 1.54" OLED display, 3 push buttons and a buzzer so you can study interaction, timing, persistence, and modular firmware architecture on real hardware.
 
-<div align="center">
-  <a href="https://epcb.vn/products/ak-embedded-base-kit-lap-trinh-nhung-vi-dieu-khien-mcu">
-    <img src="hardware/images/ak-embedded-base-kit-version-3.jpg" width="480"/>
-  </a>
-</div>
-
 <!-- ## Quick Start
 
 If you just want to understand the game quickly, this is the shortest path:
@@ -132,9 +126,131 @@ flowchart TD
 
 This is the entire game sequence of the worm game from start to end.
 
-<div align="center">
+<!-- <div align="center">
   <img src="resources/image/FPT_worm.io_w.png" alt="Startup 1" height = "512" />
-</div>
+</div> -->
+
+```mermaid
+
+%%{init: {'theme': 'base', 'themeVariables': { 
+  'primaryColor': '#ffffff', 
+  'primaryBorderColor': '#000000', 
+  'lineColor': '#ffffff', 
+  'textColor': '#000000', 
+  'labelBoxBkgColor': '#ffffff', 
+  'labelBoxBorderColor': '#000000', 
+  'noteBkgColor': '#ffffff', 
+  'noteBorderColor': '#000000', 
+  'noteTextColor': '#000000',
+  'activationBkgColor': '#ffffff',
+  'activationBorderColor': '#000000',
+  'signalColor': '#ffffff',
+  'signalTextColor': '#ffffff',
+  'actorLineColor': '#ffffff'
+}}}%%
+
+sequenceDiagram
+    participant User
+    participant APP_AK as APP/AK
+    participant EEPROM
+    participant Worm
+    participant Apple
+    participant Screen
+    participant Score
+    participant Border
+    participant Exit
+
+    Note over User,Exit: Game Start
+
+    APP_AK->>Worm: ① Worm Init
+    activate Worm
+    Worm-->>Screen: Bird (X,Y)
+    deactivate Worm
+    activate Screen
+
+    APP_AK->>Apple: ② Apple Init
+    activate Apple
+    Apple-->>Screen: Apple (X,Y)
+    deactivate Apple
+
+    APP_AK->>Score: ③ Score Init
+    activate Score
+    Score-->>Screen: Score (X,Y)
+    deactivate Score
+
+    APP_AK->>Border: ④ Border Init
+    activate Border
+    Border-->>Screen: Border (X,Y)
+    deactivate Border
+
+    APP_AK->>EEPROM: ⑤ Read Speed and Sound
+    activate EEPROM
+    EEPROM-->>Screen: Sound
+    deactivate EEPROM
+    
+    deactivate Screen
+    Note over User,Exit: Game Play (Game Loop)
+    
+    User->>Worm: ⑥ Button [Mode, Up, Down]
+    activate Worm
+    deactivate Worm
+    
+    APP_AK->>Worm: ⑦ Update the Worm
+    activate APP_AK
+    activate Worm
+    activate Screen
+    Worm-->>Screen: 
+
+    APP_AK->>Apple: ⑧ Update the Apple
+    activate Apple
+
+    Apple->>Worm: Apple (X,Y)
+    activate Worm
+    deactivate Worm
+    deactivate Apple
+
+    APP_AK->>Score: ⑨ Update the Score
+    activate Score
+    Score -->> Worm: Score (X,Y)
+    Score-->>Screen: Score (X,Y)
+    deactivate Score
+
+    APP_AK->>Border: ⑩ Update the Border
+    activate Border
+    Border-->>Screen: Border (X,Y)
+    deactivate Border
+    APP_AK->>EEPROM: ⑪ Sending Music and Speed
+    activate EEPROM
+    EEPROM-->>Screen: Music and Speed
+    deactivate Screen
+    deactivate EEPROM
+
+    Worm->>Worm: Suicide
+    Worm->>Exit: Game Over
+    deactivate Worm
+    activate Exit
+    deactivate Exit
+    deactivate APP_AK
+
+    Note over User,Exit: Game Over
+
+    APP_AK->>EEPROM: ⑫ Update Score
+    activate EEPROM
+    EEPROM->>Screen: Score (X,Y)
+    activate Screen
+    deactivate EEPROM
+
+    APP_AK->>Screen: ⑬ Draw words on screen
+
+    Border->>Exit: Retry
+    activate Border
+    deactivate Border
+    activate Exit
+    Exit->>Screen: Exit
+    deactivate Exit
+    deactivate Screen
+```
+
 
 ## Game Design
 
