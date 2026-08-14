@@ -1,5 +1,11 @@
-# Game built with AK Embedded Base Kit
+# Worm Game banner
+<div>
+  <td>
+    <img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/039cc212-7e32-499d-b731-d2e2ec963525" />
+  </td>
+</div>
 
+# Game built with AK Embedded Base Kit
 <div align="center">
   <a href="https://github.com/user-attachments/assets/9e163a97-6063-408f-8b68-bad60333bbce">
     <video
