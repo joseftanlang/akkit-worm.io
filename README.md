@@ -1,7 +1,11 @@
 # Worm Game banner
 <div>
   <td>
-    <img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/039cc212-7e32-499d-b731-d2e2ec963525" />
+    <img 
+      src="https://github.com/user-attachments/assets/039cc212-7e32-499d-b731-d2e2ec963525" 
+      alt="Image" 
+      style="max-width: 100%; height: auto; display: block;"
+    />
   </td>
 </div>
 
