@@ -501,3 +501,5 @@ make flash
 | Where to buy KIT? | <https://epcb.vn/products/ak-embedded-base-kit-lap-trinh-nhung-vi-dieu-khien-mcu> |
 | Schematic | [hardware/schematic/schematic-ak-embedded-base-kit-version-3.pdf](hardware/schematic/schematic-ak-embedded-base-kit-version-3.pdf) |
 | Learning kit | [ Instruction Manual](./resources/Instruction/OVERALL.md) |
+
+Created on August 2026 @ Joseftanlang
